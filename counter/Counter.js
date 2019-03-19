@@ -1,6 +1,6 @@
 'use strict';
 const React = require('react');
-const { render, Color } = require('ink');
+const { render, Box, Color } = require('ink');
 
 const Counter = () => {
     const [counter, setCounter] = React.useState(0);
@@ -12,7 +12,9 @@ const Counter = () => {
         return () => clearInterval(interval);
     });
 
-    return <Color green>{counter} tests passed</Color>
+    return <Box>
+        Counter: <Color green>{counter}</Color>
+    </Box>
 }
 
 render(
