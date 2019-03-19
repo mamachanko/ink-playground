@@ -1,6 +1,5 @@
-'use strict';
-const React = require('react');
-const { render, Box, Color } = require('ink');
+import React from 'react';
+import { render, Box, Color } from 'ink';
 
 const Counter = () => {
     const [counter, setCounter] = React.useState(0);
