@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "react": "^16.8.4",
+    "ink": "^2.0.6",
+    "import-jsx": "^2.0.0"
+  }
+}
