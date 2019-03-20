@@ -1,12 +1,13 @@
-import { Box, Color } from 'ink';
+import { Box, Color, StdinContext } from 'ink';
 import Spinner from 'ink-spinner';
 import * as React from 'react';
-import { useEffect, useState, useRef } from 'react';
+import { useContext, useEffect, useState } from 'react';
 
 const CTRL_C = '\x03'
 const SPACE = ' ';
 
-const Counter = ({ stdin, setRawMode }) => {
+const Counter = () => {
+    const {stdin, setRawMode} = useContext(StdinContext);
     const [counter, setCounter] = useState(0);
     const [incrementing, setIncrementing] = useState(false);
 
