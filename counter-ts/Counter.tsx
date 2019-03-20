@@ -1,20 +1,51 @@
-import * as React from 'react';
-import { render, Box, Color } from 'ink';
+import { Box, Color } from 'ink';
 import Spinner from 'ink-spinner';
+import * as React from 'react';
+import { useEffect, useState, useRef } from 'react';
 
-const Counter = () => {
-    const [counter, setCounter] = React.useState(0);
+const CTRL_C = '\x03'
+const SPACE = ' ';
+
+const Counter = ({ stdin, setRawMode }) => {
+    const [counter, setCounter] = useState(0);
+    const [incrementing, setIncrementing] = useState(false);
 
     const increment = () => setCounter(counter => counter + 1);
 
-    React.useEffect(() => {
-        const interval = setInterval(increment, 100);
-        return () => clearInterval(interval);
+    const slowIncrement = () => {
+        if (incrementing) return;
+        setIncrementing(true);
+        setTimeout(() => {
+            increment();
+            setIncrementing(false);
+        }, 500);
+    }
+
+    const quit = () => {
+        console.log('ok. bye bye.');
+        process.exit(0);
+    }
+    
+    const handleInput = data => {
+        switch(data.toString()) {
+            case(CTRL_C): quit();
+            case(SPACE): slowIncrement();
+        }
+    };
+
+    setRawMode(true);
+    stdin.on('data', handleInput);
+
+    useEffect(() => {
+        return () => {
+            stdin.removeListener('data', handleInput);
+            setRawMode(false);
+        }
     });
 
     return <Box>
         <Box width={2}>
-            <Spinner type='dots' />
+            {incrementing ? <Spinner type='dots' />: undefined}
         </Box>
         <Box>
             Counter: <Color green>{counter}</Color>
@@ -22,4 +53,4 @@ const Counter = () => {
     </Box>
 }
 
-render(<Counter />);
+export default Counter;

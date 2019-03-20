@@ -4,4 +4,4 @@ set -euo pipefail
 
 cd $(dirname $0)
 
-npx ts-node Counter.tsx
+npx ts-node .
