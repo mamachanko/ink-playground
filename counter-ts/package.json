@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "ink": "^2.0.6",
+    "ink-spinner": "^3.0.0",
     "react": "^16.8.4",
     "ts-node": "^8.0.3",
     "typescript": "^3.3.3333"

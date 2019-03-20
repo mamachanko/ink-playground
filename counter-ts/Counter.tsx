@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { render, Box, Color } from 'ink';
+import Spinner from 'ink-spinner';
 
 const Counter = () => {
     const [counter, setCounter] = React.useState(0);
@@ -12,7 +13,12 @@ const Counter = () => {
     });
 
     return <Box>
-        Counter: <Color green>{counter}</Color>
+        <Box width={2}>
+            <Spinner type='dots' />
+        </Box>
+        <Box>
+            Counter: <Color green>{counter}</Color>
+        </Box>
     </Box>
 }
 
