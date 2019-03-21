@@ -2,18 +2,18 @@ import { spawn } from 'child_process';
 import { Box, StdinContext, Text } from 'ink';
 import Spinner from 'ink-spinner';
 import * as React from 'react';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 import { start } from 'repl';
 
 const CTRL_C = '\x03'
 const SPACE = ' ';
 
 const useStdin = (handleInput) => {
-    const {stdin, setRawMode} = useContext(StdinContext);
+    const { stdin, setRawMode } = useContext(StdinContext);
 
     useEffect(() => {
         setRawMode(true);
-        stdin.on('data', handleInput);    
+        stdin.on('data', handleInput);
 
         return () => {
             stdin.removeListener('data', handleInput);
@@ -23,6 +23,7 @@ const useStdin = (handleInput) => {
 }
 
 const useCommand = (command: string) => {
+    const [started, setStarted] = useState(false);
     const [stdout, setStdout] = useState([]);
     const [exitCode, setExitCode] = useState(null);
     const [isRunning, setIsRunning] = useState(false);
@@ -36,6 +37,7 @@ const useCommand = (command: string) => {
     }
 
     useEffect(() => {
+        if (!started) return;
         const subshell = run(command);
         setIsRunning(true);
 
@@ -45,38 +47,48 @@ const useCommand = (command: string) => {
             setIsRunning(false);
             setExitCode(code);
         });
-    }, []);
+    }, [started]);
 
-    return {stdout, isRunning, exitCode};
+    const start = () => setStarted(true);
+
+    return { start, stdout, isRunning, exitCode };
 };
 
 const Command = () => {
+    const triggered = useRef(false);
+
     const quit = () => {
         console.log('ok. bye bye.');
         process.exit(0);
     }
-    
-    const handleInput = data => {
-        switch(data.toString()) {
-            case(CTRL_C): quit();
-            case(SPACE): ;
-        }
-    };
 
-    useStdin(handleInput);
-    
     const {
+        start,
         stdout,
         isRunning,
         exitCode,
     } = useCommand('cf target');
 
-    return <Box flexDirection={'column'}>
-        {stdout.map((line, index) => <Text key={index}>{line}</Text>)}
-        {isRunning ?
-            <Spinner type='dots' />
-            : `finished with exit code ${exitCode}`}
-    </Box>;
+    const handleInput = data => {
+        switch (data.toString()) {
+            case (CTRL_C): quit();
+            case (SPACE): {
+                start();
+                triggered.current = true;
+            };
+        }
+    };
+
+    useStdin(handleInput);
+
+    return triggered.current ?
+        <Box flexDirection={'column'}>
+            {stdout.map((line, index) => <Text key={index}>{line}</Text>)}
+            {isRunning ?
+                <Spinner type='dots' />
+                : `finished with exit code ${exitCode}`}
+        </Box> :
+        <Text>{'press <space> to run'}</Text>;
 }
 
 export default Command;

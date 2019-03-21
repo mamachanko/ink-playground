@@ -9,6 +9,8 @@ describe('<Command />', () => {
     });
 
     it('runs command and displays output', () => {
-        const { lastFrame, stdin } = render(<Command />);
+        const { lastFrame } = render(<Command />);
+
+        expect(lastFrame()).toContain('press <space> to run');
     });
 });
