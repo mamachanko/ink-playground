@@ -3,9 +3,10 @@ import { Box, StdinContext, Text } from 'ink';
 import Spinner from 'ink-spinner';
 import * as React from 'react';
 import { useContext, useEffect, useState, useRef } from 'react';
-import { start } from 'repl';
+import * as jsesc from 'jsesc';
 
-const CTRL_C = '\x03'
+const CTRL_C = '\x03';
+const ENTER = '\r';
 const SPACE = ' ';
 
 const useStdin = (handleInput) => {
@@ -23,59 +24,96 @@ const useStdin = (handleInput) => {
 }
 
 const useCommand = (command: string) => {
+    const subshell = useRef(null);
+    const subscribed = useRef(false);
     const [started, setStarted] = useState(false);
     const [stdout, setStdout] = useState([]);
     const [exitCode, setExitCode] = useState(null);
     const [isRunning, setIsRunning] = useState(false);
-
-    const append = (line: any) =>
-        setStdout(previousStdout => previousStdout.concat([String(line)]));
+    const [userInputNeeded, setUserInputNeeded] = useState(false);
 
     const run = (command: string) => {
         const [commandName, ...args] = command.split(' ');
         return spawn(commandName, args);
     }
 
-    useEffect(() => {
-        if (!started) return;
-        const subshell = run(command);
-        setIsRunning(true);
+    if (subshell.current && !subscribed.current) {
+        subshell.current.stdout.on('data', (data) => {
+            const output = String(data);
+            setStdout(previousStdout => previousStdout.concat([output]))
+        });
 
-        subshell.stdout.on('data', append);
-
-        subshell.on('exit', code => {
+        subshell.current.on('exit', code => {
             setIsRunning(false);
             setExitCode(code);
         });
+
+        subscribed.current = true;
+    }
+
+    useEffect(() => {
+        if (!started) return;
+        subshell.current = run(command);
+        setIsRunning(true);
     }, [started]);
 
-    const start = () => setStarted(true);
+    useEffect(() => {
+        const latest: string = stdout[stdout.length - 1];
+        if (latest) setUserInputNeeded(latest.endsWith('> '));
+    }, [stdout]);
 
-    return { start, stdout, isRunning, exitCode };
+    const writeUserInput = (userInput) => {
+        if (subshell.current) subshell.current.stdin.write(userInput + '\n');
+    }
+
+    return {
+        start: () => setStarted(true),
+        stdout,
+        isRunning,
+        exitCode,
+        userInputNeeded,
+        writeUserInput
+    };
 };
 
 const Command = () => {
     const triggered = useRef(false);
+    const [userInput, setUserInput] = useState('');
 
     const quit = () => {
         console.log('ok. bye bye.');
         process.exit(0);
     }
 
+
     const {
         start,
         stdout,
         isRunning,
         exitCode,
-    } = useCommand('cf target');
+        userInputNeeded,
+        writeUserInput,
+    } = useCommand('cf login -a api.run.pivotal.io --sso');
+
+    const submit = () => {
+        writeUserInput(userInput);
+        setUserInput('');
+    };
 
     const handleInput = data => {
         switch (data.toString()) {
-            case (CTRL_C): quit();
-            case (SPACE): {
+            case (CTRL_C):
+                quit();
+                break;
+            case (SPACE):
                 start();
                 triggered.current = true;
-            };
+                break;
+            case (ENTER): 
+                submit();
+                break;
+            default: 
+                setUserInput(previousUserInput => previousUserInput + data);
         }
     };
 
@@ -84,6 +122,9 @@ const Command = () => {
     return triggered.current ?
         <Box flexDirection={'column'}>
             {stdout.map((line, index) => <Text key={index}>{line}</Text>)}
+            {userInputNeeded ?
+                'user input needed > ' + jsesc(userInput)
+                : ''}
             {isRunning ?
                 <Spinner type='dots' />
                 : `finished with exit code ${exitCode}`}

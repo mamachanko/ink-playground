@@ -341,6 +341,11 @@
   dependencies:
     "@types/jest-diff" "*"
 
+"@types/jsesc@^0.4.29":
+  version "0.4.29"
+  resolved "https://registry.yarnpkg.com/@types/jsesc/-/jsesc-0.4.29.tgz#d8db65b72776996c03870306a5b048c26980cf8e"
+  integrity sha1-2Ntltyd2mWwDhwMGpbBIwmmAz44=
+
 "@types/node@*":
   version "11.11.4"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-11.11.4.tgz#8808bd5a82bbf6f5d412eff1c228d178e7c24bb3"
@@ -2094,7 +2099,7 @@ jsdom@^11.5.1:
     ws "^5.2.0"
     xml-name-validator "^3.0.0"
 
-jsesc@^2.5.1:
+jsesc@^2.5.1, jsesc@^2.5.2:
   version "2.5.2"
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-2.5.2.tgz#80564d2e483dacf6e8ef209650a67df3f0c283a4"
   integrity sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==
