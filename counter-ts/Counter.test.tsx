@@ -1,8 +1,7 @@
+import { cleanup, render } from 'ink-testing-library';
 import * as React from 'react';
-import { render, cleanup } from 'ink-testing-library';
-import Counter from './Counter';
 import stripAnsi from 'strip-ansi';
-import { StdinContext } from 'ink';
+import Counter from './Counter';
 
 describe('<Counter />', () => {
 
