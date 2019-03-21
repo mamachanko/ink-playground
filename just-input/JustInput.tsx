@@ -1,11 +1,12 @@
 import { Text } from 'ink';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
+import * as jsesc from 'jsesc';
 
 const CTRL_C = '\x03'
 
 const JustInput = ({ stdin, setRawMode }) => {
-    const [content, setContent] = useState('');
+    const [input, setInput] = useState('');
 
     const quit = () => {
         console.log('ok. bye bye.');
@@ -13,10 +14,12 @@ const JustInput = ({ stdin, setRawMode }) => {
     }
 
     const handleInput = data => {
-        const input = data.toString();
-        switch(input) {
-            case(CTRL_C): quit();
-            default: setContent(currentContent => currentContent + input);
+        switch (data) {
+            case (CTRL_C):
+                quit();
+                break;
+            default:
+                setInput(previousInput => previousInput + jsesc(data));
         }
     };
 
@@ -30,7 +33,7 @@ const JustInput = ({ stdin, setRawMode }) => {
         }
     });
 
-    return <Text>Input: {content}</Text>
+    return <Text>Input: {input}</Text>
 }
 
 export default JustInput;
