@@ -3,26 +3,13 @@ import { Box, StdinContext, Text } from 'ink';
 import Spinner from 'ink-spinner';
 import * as React from 'react';
 import { useContext, useEffect, useState } from 'react';
+import { start } from 'repl';
 
 const CTRL_C = '\x03'
+const SPACE = ' ';
 
-const Command = () => {
+const useStdin = (handleInput) => {
     const {stdin, setRawMode} = useContext(StdinContext);
-    const [lines, setLines] = useState([]);
-    const [running, setRunning] = useState(false);
-
-    const append = line => setLines(currentLines => currentLines.concat([line]));
-
-    const quit = () => {
-        console.log('ok. bye bye.');
-        process.exit(0);
-    }
-    
-    const handleInput = data => {
-        switch(data.toString()) {
-            case(CTRL_C): quit();
-        }
-    };
 
     useEffect(() => {
         setRawMode(true);
@@ -33,24 +20,62 @@ const Command = () => {
             setRawMode(false);
         }
     });
+}
+
+const useCommand = (command: string) => {
+    const [stdout, setStdout] = useState([]);
+    const [exitCode, setExitCode] = useState(null);
+    const [isRunning, setIsRunning] = useState(false);
+
+    const append = (line: any) =>
+        setStdout(previousStdout => previousStdout.concat([String(line)]));
+
+    const run = (command: string) => {
+        const [commandName, ...args] = command.split(' ');
+        return spawn(commandName, args);
+    }
 
     useEffect(() => {
-        const gitLog = spawn('cf', ['target']);
-        setRunning(true);
+        const subshell = run(command);
+        setIsRunning(true);
 
-        gitLog.stdout.on('data', data =>
-            append(data.toString())
-        );
+        subshell.stdout.on('data', append);
 
-        gitLog.on('exit', code => {
-            setRunning(false);
-            append(`exited w/ ${code}`);
+        subshell.on('exit', code => {
+            setIsRunning(false);
+            setExitCode(code);
         });
     }, []);
 
+    return {stdout, isRunning, exitCode};
+};
+
+const Command = () => {
+    const quit = () => {
+        console.log('ok. bye bye.');
+        process.exit(0);
+    }
+    
+    const handleInput = data => {
+        switch(data.toString()) {
+            case(CTRL_C): quit();
+            case(SPACE): ;
+        }
+    };
+
+    useStdin(handleInput);
+    
+    const {
+        stdout,
+        isRunning,
+        exitCode,
+    } = useCommand('cf target');
+
     return <Box flexDirection={'column'}>
-        {lines.map((line, index) => <Text key={index}>{line}</Text>)}
-        {running ? <Spinner type='dots'/> : ''}
+        {stdout.map((line, index) => <Text key={index}>{line}</Text>)}
+        {isRunning ?
+            <Spinner type='dots' />
+            : `finished with exit code ${exitCode}`}
     </Box>;
 }
 
