@@ -1,8 +1,8 @@
 import { render } from 'ink';
 import * as React from 'react';
-import Counter from './Counter';
+import { App } from './App';
 
 render(
-    <Counter />,
-    { exitOnCtrlC: false }
+    <App />,
+    { exitOnCtrlC: true }
 );

@@ -1,30 +1,33 @@
-import { Box, StdinContext, Text } from 'ink';
+import { StdinContext, Text } from 'ink';
 import * as React from 'react';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useCallback } from 'react';
+import { useDispatch, useGlobalState } from './App';
 
 const CTRL_C = '\x03';
 const SPACE = ' ';
 
 const Counter = () => {
-    const {stdin, setRawMode} = useContext(StdinContext);
-    const [count, setCount] = useState(0);
-
-    const handleInput = data => {
-        if (data === SPACE) setCount(count + 1);
-        if (data === CTRL_C) process.exit(1);
-    };
+    const { stdin, setRawMode } = useContext(StdinContext);
+    const state = useGlobalState();
+    const dispatch = useDispatch();
+    const increment = useCallback(() => dispatch({type: 'INCREMENT'}), [dispatch]);
     
-    setRawMode(true);
-    stdin.on('data', handleInput);
+    // TODO: move stdin usage to custom hook -> useStdin
+    const handleInput = (data: string) => {
+        if (data === SPACE) increment();
+    };
 
     useEffect(() => {
+        setRawMode(true);
+        stdin.on('data', handleInput);
+
         return () => {
             setRawMode(false);
             stdin.removeListener('data', handleInput);
         };
     });
 
-    return <Text>{count}</Text>;
+    return <Text>count: {state.count}</Text>;
 };
 
 export default Counter;
