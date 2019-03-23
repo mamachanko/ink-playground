@@ -1,22 +1,12 @@
 import { StdinContext, Text } from 'ink';
 import * as React from 'react';
-import { useContext, useEffect, useCallback } from 'react';
-import { useDispatch, useGlobalState } from './App';
+import { useCallback, useContext, useEffect } from 'react';
+import { useGlobalState } from './App';
 
-const CTRL_C = '\x03';
 const SPACE = ' ';
 
-const Counter = () => {
+const useStdin = (handleInput) => {
     const { stdin, setRawMode } = useContext(StdinContext);
-    const state = useGlobalState();
-    const dispatch = useDispatch();
-    const increment = useCallback(() => dispatch({type: 'INCREMENT'}), [dispatch]);
-    
-    // TODO: move stdin usage to custom hook -> useStdin
-    const handleInput = (data: string) => {
-        if (data === SPACE) increment();
-    };
-
     useEffect(() => {
         setRawMode(true);
         stdin.on('data', handleInput);
@@ -26,6 +16,17 @@ const Counter = () => {
             stdin.removeListener('data', handleInput);
         };
     });
+};
+
+const Counter = () => {
+    const { state, dispatch } = useGlobalState();
+    const increment = useCallback(() => dispatch({ type: 'INCREMENT' }), [dispatch]);
+
+    const handleInput = (input: string) => {
+        if (input === SPACE) increment();
+    };
+
+    useStdin(handleInput);
 
     return <Text>count: {state.count}</Text>;
 };

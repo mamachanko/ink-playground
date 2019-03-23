@@ -11,8 +11,10 @@ type Action = | Increment;
 const StateContext = createContext(initialState);
 const DispatchContext = createContext((() => 0) as React.Dispatch<Action>);
 
-export const useDispatch = () => useContext(DispatchContext);
-export const useGlobalState = () => useContext(StateContext);
+export const useGlobalState = () => ({
+    state: useContext(StateContext), 
+    dispatch: useContext(DispatchContext)
+});
 
 const reducer = (state: State, action: Action): State => {
     if (action.type = 'INCREMENT') {
@@ -24,7 +26,7 @@ const reducer = (state: State, action: Action): State => {
 };
 
 // eslint-disable-next-line react/prop-types
-const Provider: React.ComponentType = ({ children }) => {
+const GlobalStateProvider: React.ComponentType = ({ children }) => {
     const [state, dispatch] = useReducer(reducer, initialState);
 
     return <DispatchContext.Provider value={dispatch}>
@@ -34,6 +36,6 @@ const Provider: React.ComponentType = ({ children }) => {
     </DispatchContext.Provider>
 };
 
-export const App = () => <Provider>
+export const App = () => <GlobalStateProvider>
     <Counter/>
-</Provider>;
+</GlobalStateProvider>;
