@@ -10,6 +10,6 @@ describe('<CfLogin />', () => {
 	it('logs in', () => {
 		const {lastFrame} = render(<CfLogin/>);
 
-		expect(lastFrame()).toEqual('cf login');
+		expect(lastFrame()).toContain('cf login');
 	});
 });

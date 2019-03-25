@@ -1,11 +1,10 @@
+import {ChildProcess, spawn} from 'child_process';
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import {CfLogin} from './cf-login';
-import { ChildProcess, spawn } from 'child_process';
-import { start } from 'repl';
 
 const initialState = {
-	// TODO: state = UNSTARTED | STARTED | FINISHED
+	// Idea: state = UNSTARTED | STARTED | FINISHED
 	running: false,
 	finished: false,
 	exitCode: -1,
@@ -13,10 +12,10 @@ const initialState = {
 };
 type State = typeof initialState;
 
-interface Start { type: 'START' };
-interface OutputReceived { type: 'OUTPUT_RECEIVED', output: string };
-interface Finished { type: 'FINISHED', exitCode: number };
-type Action = 
+interface Start { type: 'START' }
+interface OutputReceived { type: 'OUTPUT_RECEIVED'; output: string }
+interface Finished { type: 'FINISHED'; exitCode: number }
+type Action =
 	| Start
 	| OutputReceived
 	| Finished;
@@ -39,7 +38,7 @@ const reducer = (state: State = initialState, action: Action): State => {
 			output: []
 		};
 	}
-	
+
 	if (action.type === 'OUTPUT_RECEIVED') {
 		return {
 			...state,
@@ -60,27 +59,26 @@ const reducer = (state: State = initialState, action: Action): State => {
 };
 
 class CommandRuntimeMiddleware {
+	private _subshell: ChildProcess = null;
 
-	private subshell: ChildProcess = null;
-
-	middleware() {
-		return (store: State) => (next: React.Dispatch<Action>) => (action: Action) => {
+	middleware(): (next: React.Dispatch<Action>) => (action: Action) => void {
+		return next => action => {
 			if (action.type === 'START') {
-				this.subshell = spawn('date');
+				this._subshell = spawn('date');
 
-				this.subshell.stdout.on('data', output => {
-					next({type: 'OUTPUT_RECEIVED', output: String(output)})
+				this._subshell.stdout.on('data', output => {
+					next({type: 'OUTPUT_RECEIVED', output: String(output)});
 				});
-				
-				this.subshell.on('exit', code => {
+
+				this._subshell.on('exit', code => {
 					next({type: 'FINISHED', exitCode: code});
-					this.subshell = null;
+					this._subshell = null;
 				});
 			}
-			
+
 			next(action);
 		};
-	}	
+	}
 }
 
 const commandMiddleware = new CommandRuntimeMiddleware();
@@ -88,7 +86,7 @@ const commandMiddleware = new CommandRuntimeMiddleware();
 const GlobalStateProvider: React.ComponentType = ({children}): React.ReactElement => {
 	const [state, dispatch] = React.useReducer(reducer, initialState);
 
-	const enhancedDispatch = commandMiddleware.middleware()(state)(dispatch);
+	const enhancedDispatch = commandMiddleware.middleware()(dispatch);
 
 	return (
 		<DispatchContext.Provider value={enhancedDispatch}>
