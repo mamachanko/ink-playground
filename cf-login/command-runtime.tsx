@@ -7,9 +7,14 @@ class CommandRuntimeMiddleware {
 	middleware(): (next: React.Dispatch<Action>) => (action: Action) => void {
 		return next => action => {
 			if (action.type === 'START') {
-				this._subshell = spawn('date');
+				const [fileName, ...args] = action.command.split(' ');
+				this._subshell = spawn(fileName, args);
 
-				this._subshell.stdout.on('data', output => {
+				this._subshell.stdout.on('data', (output: any) => {
+					if (String(output).endsWith('> ')) {
+						next({type: 'INPUT_REQUESTED'});
+					}
+
 					next({type: 'OUTPUT_RECEIVED', output: String(output)});
 				});
 

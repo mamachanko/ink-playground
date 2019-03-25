@@ -6,6 +6,7 @@ const initialState = {
 	// Idea: state = UNSTARTED | STARTED | FINISHED
 	running: false,
 	finished: false,
+	inputRequested: false,
 	exitCode: -1,
 	output: []
 };
@@ -14,11 +15,16 @@ type State = typeof initialState;
 
 interface Start {
 	type: 'START';
+	command: string;
 }
 
 interface OutputReceived {
 	type: 'OUTPUT_RECEIVED';
 	output: string;
+}
+
+interface InputRequested {
+	type: 'INPUT_REQUESTED';
 }
 
 interface Finished {
@@ -29,6 +35,7 @@ interface Finished {
 export type Action =
 	| Start
 	| OutputReceived
+	| InputRequested
 	| Finished;
 
 const StateContext = React.createContext(initialState);
@@ -48,6 +55,7 @@ const reducer = (state: State = initialState, action: Action): State => {
 			...state,
 			running: true,
 			finished: false,
+			inputRequested: false,
 			exitCode: -1,
 			output: []
 		};
@@ -60,11 +68,19 @@ const reducer = (state: State = initialState, action: Action): State => {
 		};
 	}
 
+	if (action.type === 'INPUT_REQUESTED') {
+		return {
+			...state,
+			inputRequested: true
+		};
+	}
+
 	if (action.type === 'FINISHED') {
 		return {
 			...state,
 			running: false,
 			finished: true,
+			inputRequested: false,
 			exitCode: action.exitCode
 		};
 	}
