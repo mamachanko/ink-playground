@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Text, StdinContext, Box} from 'ink';
-import {useGlobalState} from './app';
+import {useStore} from './store';
 
 const useStdin = (handleInput: (input: string) => void): void => {
 	const {stdin, setRawMode} = React.useContext(StdinContext);
@@ -17,8 +17,15 @@ const useStdin = (handleInput: (input: string) => void): void => {
 };
 
 export const CfLogin = (): React.ReactElement => {
-	const {state: {running, finished, output, exitCode}, dispatch} = useGlobalState();
-	const start = React.useCallback(() => dispatch({type: 'START'}), [dispatch]);
+	const {
+		state: {running, finished, output, exitCode},
+		dispatch
+	} = useStore();
+
+	const start = React.useCallback(
+		() => dispatch({type: 'START'}),
+		[dispatch]
+	);
 
 	const handleInput = (input: string): void => {
 		if (input === ' ') {
