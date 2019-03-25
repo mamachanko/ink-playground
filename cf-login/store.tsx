@@ -27,6 +27,11 @@ interface InputRequested {
 	type: 'INPUT_REQUESTED';
 }
 
+interface InputReceived {
+	type: 'INPUT_RECEIVED';
+	input: string;
+}
+
 interface Finished {
 	type: 'FINISHED';
 	exitCode: number;
@@ -36,6 +41,7 @@ export type Action =
 	| Start
 	| OutputReceived
 	| InputRequested
+	| InputReceived
 	| Finished;
 
 const StateContext = React.createContext(initialState);
@@ -72,6 +78,13 @@ const reducer = (state: State = initialState, action: Action): State => {
 		return {
 			...state,
 			inputRequested: true
+		};
+	}
+
+	if (action.type === 'INPUT_RECEIVED') {
+		return {
+			...state,
+			inputRequested: false
 		};
 	}
 

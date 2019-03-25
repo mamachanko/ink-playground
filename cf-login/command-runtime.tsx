@@ -24,6 +24,10 @@ class CommandRuntimeMiddleware {
 				});
 			}
 
+			if (action.type === 'INPUT_RECEIVED') {
+				this._subshell.stdin.write(action.input + '\n');
+			}
+
 			next(action);
 		};
 	}

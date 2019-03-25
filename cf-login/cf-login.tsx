@@ -62,10 +62,33 @@ Command.propTypes = {
 };
 
 const InputPrompt = (): React.ReactElement => {
-	const {state: {inputRequested}} = useStore();
+	const {state: {inputRequested}, dispatch} = useStore();
+	const [userInput, setUserInput] = React.useState('');
+	const submit = React.useCallback(
+		() => {
+			setUserInput('');
+			dispatch({type: 'INPUT_RECEIVED', input: userInput});
+		},
+		[dispatch, userInput]
+	);
+
+	const handleInput = (input: string): void => {
+		if (input === '\r') {
+			submit();
+		} else {
+			setUserInput((prevUserInput: string) => prevUserInput + input);
+		}
+	};
+
+	useStdin(handleInput);
 
 	if (inputRequested) {
-		return <Text>input requested</Text>;
+		return (
+			<Box>
+				<Text>{'>_ '}</Text>
+				<Text>{userInput}</Text>
+			</Box>
+		);
 	}
 
 	return null;
@@ -107,7 +130,7 @@ export const CfLogin = (): React.ReactElement => {
 			<Output/>
 			<InputPrompt/>
 			<ExitStatus/>
-			<Command command="curl mockbin.org/delay/1500"/>
+			<Command command="cf login --sso -a api.run.pivotal.io"/>
 		</Box>
 	);
 };
