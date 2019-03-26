@@ -125,19 +125,24 @@ const Output = (): React.ReactElement => {
 	return null;
 };
 
+const Title = (): React.ReactElement => (
+	<InkBox
+		borderStyle="round"
+		borderColor="cyan"
+	>
+		Welcome to <Color green>cfpush</Color>
+	</InkBox>
+);
+
 export const CfLogin = (): React.ReactElement => {
 	return (
 		<Box flexDirection="column">
-			<InkBox
-				borderStyle="round"
-				borderColor="cyan"
-			>
-				Welcome to <Color green>cfpush</Color>
-			</InkBox>
+			<Title/>
 			<Output/>
 			<InputPrompt/>
 			<ExitStatus/>
-			<Command command="cf login --sso -a api.run.pivotal.io"/>
+			{/* <Command command="cf login --sso -a api.run.pivotal.io"/> */}
+			<Command command="date"/>
 		</Box>
 	);
 };

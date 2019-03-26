@@ -21,6 +21,7 @@
     "eslint-plugin-typescript": "^0.14.0",
     "ink-testing-library": "^1.0.1",
     "jest": "^24.5.0",
+    "strip-ansi": "^5.2.0",
     "ts-jest": "^24.0.0",
     "xo": "^0.24.0"
   },
