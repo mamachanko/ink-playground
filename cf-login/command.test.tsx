@@ -1,41 +1,40 @@
 import * as React from 'react';
 import {cleanup, render} from 'ink-testing-library';
 import stripAnsi from 'strip-ansi';
-import {CfLogin} from './cf-login';
+import {Command} from './command';
 import {StoreProvider} from './store';
 
 const SPACE = ' ';
 
 const sleep = (ms?: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms || 0));
 
-describe('<CfLogin />', () => {
+describe('<Command />', () => {
 	afterEach(() => {
 		cleanup();
 	});
 
-	it('logs in', async () => {
+	it('runs command when pressing space', async () => {
 		const {lastFrame, stdin} = render(
 			<StoreProvider>
-				<CfLogin/>
+				<Command command="echo hello there"/>
 			</StoreProvider>
 		);
 
-		expect(stripAnsi(lastFrame())).toContain('Welcome to cfpush');
 		expect(stripAnsi(lastFrame())).toContain('press <space> to run "echo hello there"');
 
-		await sleep();
+		await sleep(10);
 		stdin.write(SPACE);
 		expect(stripAnsi(lastFrame())).toContain('running');
 
-		await sleep();
+		await sleep(10);
 		expect(stripAnsi(lastFrame())).toContain('hello there');
 		expect(stripAnsi(lastFrame())).not.toContain('running');
 
-		await sleep();
+		await sleep(10);
 		stdin.write(SPACE);
 		expect(stripAnsi(lastFrame())).toContain('running');
 
-		await sleep();
+		await sleep(10);
 		expect(stripAnsi(lastFrame())).toContain('hello there');
 		expect(stripAnsi(lastFrame())).not.toContain('running');
 	});

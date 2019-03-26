@@ -1,8 +1,7 @@
-import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import {Text, StdinContext, Box, Color} from 'ink';
-import * as InkBox from 'ink-box';
+import {Box, StdinContext, Text} from 'ink';
 import Spinner from 'ink-spinner';
+import * as PropTypes from 'prop-types';
+import * as React from 'react';
 import {useStore} from './store';
 
 const useStdin = (handleInput: (input: string) => void): void => {
@@ -19,7 +18,7 @@ const useStdin = (handleInput: (input: string) => void): void => {
 	});
 };
 
-const Start = ({command}): React.ReactElement => {
+const Trigger = ({command}): React.ReactElement => {
 	const SPACE = ' ';
 	const {dispatch} = useStore();
 	const start = React.useCallback(
@@ -37,11 +36,11 @@ const Start = ({command}): React.ReactElement => {
 	return <Text>{`press <space> to run "${command}"`}</Text>;
 };
 
-Start.propTypes = {
+Trigger.propTypes = {
 	command: PropTypes.string.isRequired
 };
 
-const Command = ({command}): React.ReactElement => {
+const CommandPrompt = ({command}): React.ReactElement => {
 	const {state: {running}} = useStore();
 
 	if (running) {
@@ -55,10 +54,10 @@ const Command = ({command}): React.ReactElement => {
 		);
 	}
 
-	return <Start command={command}/>;
+	return <Trigger command={command}/>;
 };
 
-Command.propTypes = {
+CommandPrompt.propTypes = {
 	command: PropTypes.string.isRequired
 };
 
@@ -125,24 +124,17 @@ const Output = (): React.ReactElement => {
 	return null;
 };
 
-const Title = (): React.ReactElement => (
-	<InkBox
-		borderStyle="round"
-		borderColor="cyan"
-	>
-		Welcome to <Color green>cfpush</Color>
-	</InkBox>
-);
-
-export const CfLogin = (): React.ReactElement => {
+export const Command = ({command}): React.ReactElement => {
 	return (
 		<Box flexDirection="column">
-			<Title/>
 			<Output/>
 			<InputPrompt/>
 			<ExitStatus/>
-			{/* <Command command="cf login --sso -a api.run.pivotal.io"/> */}
-			<Command command="echo hello there"/>
+			<CommandPrompt command={command}/>
 		</Box>
 	);
+};
+
+Command.propTypes = {
+	command: PropTypes.string.isRequired
 };
