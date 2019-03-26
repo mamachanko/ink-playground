@@ -1,8 +1,7 @@
-import * as React from 'react';
 import {cleanup, render} from 'ink-testing-library';
+import * as React from 'react';
 import stripAnsi from 'strip-ansi';
-import {Command} from './command';
-import {StoreProvider} from './store';
+import {App} from './app';
 
 const SPACE = ' ';
 
@@ -14,11 +13,7 @@ describe('<Command />', () => {
 	});
 
 	it('runs command when pressing space', async () => {
-		const {lastFrame, stdin} = render(
-			<StoreProvider>
-				<Command command="echo hello there"/>
-			</StoreProvider>
-		);
+		const {lastFrame, stdin} = render(<App command="echo hello there"/>);
 
 		expect(stripAnsi(lastFrame())).toContain('press <space> to run "echo hello there"');
 

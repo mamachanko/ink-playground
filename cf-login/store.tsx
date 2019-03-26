@@ -1,17 +1,13 @@
 import * as React from 'react';
-import * as PropTypes from 'prop-types';
-import {commandMiddleware} from './command-runtime';
+import {initialState} from './reducer';
 
-const initialState = {
-	// Idea: state = UNSTARTED | STARTED | FINISHED
-	running: false,
-	finished: false,
-	inputRequested: false,
-	exitCode: -1,
-	output: []
-};
-
-type State = typeof initialState;
+export interface State {
+	running: boolean;
+	finished: boolean;
+	inputRequested: boolean;
+	exitCode: number;
+	output: string[];
+}
 
 interface Start {
 	type: 'START';
@@ -44,6 +40,8 @@ export type Action =
 	| InputReceived
 	| Finished;
 
+export type Reducer = (state: State, action: Action) => State;
+
 const StateContext = React.createContext(initialState);
 const DispatchContext = React.createContext((() => 0) as React.Dispatch<Action>);
 
@@ -55,64 +53,54 @@ export const useStore = (): {
 	dispatch: React.useContext(DispatchContext)
 });
 
-const reducer = (state: State = initialState, action: Action): State => {
-	if (action.type === 'START') {
-		return {
-			...state,
-			running: true,
-			finished: false,
-			inputRequested: false,
-			exitCode: -1,
-			output: []
-		};
-	}
+export interface Store {
+	state: State;
+	dispatch: React.Dispatch<Action>;
+}
 
-	if (action.type === 'OUTPUT_RECEIVED') {
-		return {
-			...state,
-			output: [...state.output, action.output]
-		};
-	}
-
-	if (action.type === 'INPUT_REQUESTED') {
-		return {
-			...state,
-			inputRequested: true
-		};
-	}
-
-	if (action.type === 'INPUT_RECEIVED') {
-		return {
-			...state,
-			inputRequested: false
-		};
-	}
-
-	if (action.type === 'FINISHED') {
-		return {
-			...state,
-			running: false,
-			finished: true,
-			inputRequested: false,
-			exitCode: action.exitCode
-		};
-	}
-
-	return state;
+type StoreProviderProps = {
+	store: Store;
 };
 
-export const StoreProvider: React.ComponentType = ({children}): React.ReactElement => {
-	const [state, dispatch] = React.useReducer(reducer, initialState);
-	const enhancedDispatch = commandMiddleware.middleware()(dispatch);
-	return (
-		<DispatchContext.Provider value={enhancedDispatch}>
-			<StateContext.Provider value={state}>
-				{children}
-			</StateContext.Provider>
-		</DispatchContext.Provider>
-	);
-};
+export const StoreProvider: React.FunctionComponent<StoreProviderProps> = ({store: {state, dispatch}, children}): React.ReactElement => (
+	<DispatchContext.Provider value={dispatch}>
+		<StateContext.Provider value={state}>
+			{children}
+		</StateContext.Provider>
+	</DispatchContext.Provider>
+);
 
-StoreProvider.propTypes = {
-	children: PropTypes.node.isRequired
+type StoreAPI = {
+	getState: () => State;
+	dispatch: (action: Action) => void;
+}
+
+export type Middleware = (store: StoreAPI) => MiddlewareChainable;
+
+type NextMiddleware = (action: Action) => void;
+
+type MiddlewareChainable = (next: NextMiddleware) => (action: Action) => void;
+
+export const createStore = (reducer: Reducer, initialState: State, middlewares?: Middleware[]): Store => {
+	const [state, dispatch] = React.useReducer(reducer, initialState); // eslint-disable-line react-hooks/rules-of-hooks
+
+	if (typeof middlewares === undefined) {
+		return {state, dispatch};
+	}
+
+	const storeAPI = {
+		getState: () => state,
+		dispatch: (action: Action) => dispatch(action)
+	};
+
+	const compose = (...ms: MiddlewareChainable[]) => { // eslint-disable-line @typescript-eslint/explicit-function-return-type
+		return (f: any) => ms.reduceRight((composed, m) => m(composed), f);
+	};
+
+	const middlewareChain: MiddlewareChainable[] = middlewares.map(middleware => middleware(storeAPI));
+
+	return {
+		state,
+		dispatch: compose(...middlewareChain)(dispatch)
+	};
 };

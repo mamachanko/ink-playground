@@ -1,21 +1,25 @@
 import * as React from 'react';
-import * as InkBox from 'ink-box';
-import {Color} from 'ink';
 import {Command} from './command';
-import {StoreProvider} from './store';
+import {CommandRuntimeMiddleware} from './command-runtime';
+import {initialState, reducer} from './reducer';
+import {createStore, StoreProvider} from './store';
+import {Title} from './title';
 
-const Title = (): React.ReactElement => (
-	<InkBox
-		borderStyle="round"
-		borderColor="cyan"
-	>
-		Welcome to <Color green>cfpush</Color>
-	</InkBox>
-);
+const middlewares = [
+	new CommandRuntimeMiddleware().middleware()
+];
 
-export const App = (): React.ReactElement => (
-	<StoreProvider>
-		<Title/>
-		<Command command="date"/>
-	</StoreProvider>
-);
+type AppProps = {
+	command?: string;
+}
+
+export const App: React.FunctionComponent<AppProps> = ({command = 'date'}): React.ReactElement => {
+	const store = createStore(reducer, initialState, middlewares);
+
+	return (
+		<StoreProvider store={store}>
+			<Title/>
+			<Command command={command}/>
+		</StoreProvider>
+	);
+};

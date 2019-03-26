@@ -1,11 +1,11 @@
 import {ChildProcess, spawn} from 'child_process';
-import {Action} from './store'; // eslint-disable-line import/named
+import {Middleware} from './store'; // eslint-disable-line import/named
 
-class CommandRuntimeMiddleware {
+export class CommandRuntimeMiddleware {
 	private _subshell: ChildProcess = null;
 
-	middleware(): (next: React.Dispatch<Action>) => (action: Action) => void {
-		return next => action => {
+	middleware(): Middleware {
+		return _ => next => action => {
 			if (action.type === 'START') {
 				const [fileName, ...args] = action.command.split(' ');
 				this._subshell = spawn(fileName, args);
@@ -32,4 +32,3 @@ class CommandRuntimeMiddleware {
 		};
 	}
 }
-export const commandMiddleware = new CommandRuntimeMiddleware();
