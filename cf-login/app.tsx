@@ -4,9 +4,13 @@ import {CommandRuntimeMiddleware} from './command-runtime';
 import {initialState, reducer} from './reducer';
 import {createStore, StoreProvider} from './store';
 import {Title} from './title';
+import {loggingMiddleware} from './logging-middleware';
+
+const commandRuntimeMiddleware = new CommandRuntimeMiddleware().middleware();
 
 const middlewares = [
-	new CommandRuntimeMiddleware().middleware()
+	commandRuntimeMiddleware,
+	loggingMiddleware
 ];
 
 type AppProps = {
