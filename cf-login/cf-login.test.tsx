@@ -6,12 +6,14 @@ import {StoreProvider} from './store';
 
 const SPACE = ' ';
 
+const sleep = (ms?: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms || 0));
+
 describe('<CfLogin />', () => {
 	afterEach(() => {
 		cleanup();
 	});
 
-	it('logs in', done => {
+	it('logs in', async () => {
 		const {lastFrame, stdin} = render(
 			<StoreProvider>
 				<CfLogin/>
@@ -19,16 +21,22 @@ describe('<CfLogin />', () => {
 		);
 
 		expect(stripAnsi(lastFrame())).toContain('Welcome to cfpush');
-		expect(stripAnsi(lastFrame())).toContain('press <space> to run');
+		expect(stripAnsi(lastFrame())).toContain('press <space> to run "echo hello there"');
 
-		setTimeout(() => {
-			stdin.write(SPACE);
-			expect(stripAnsi(lastFrame())).toContain('running');
+		await sleep();
+		stdin.write(SPACE);
+		expect(stripAnsi(lastFrame())).toContain('running');
 
-			setTimeout(() => {
-				expect(stripAnsi(lastFrame())).toContain('CET');
-				done();
-			});
-		});
+		await sleep();
+		expect(stripAnsi(lastFrame())).toContain('hello there');
+		expect(stripAnsi(lastFrame())).not.toContain('running');
+
+		await sleep();
+		stdin.write(SPACE);
+		expect(stripAnsi(lastFrame())).toContain('running');
+
+		await sleep();
+		expect(stripAnsi(lastFrame())).toContain('hello there');
+		expect(stripAnsi(lastFrame())).not.toContain('running');
 	});
 });

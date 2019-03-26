@@ -62,7 +62,8 @@ const reducer = (state: State = initialState, action: Action): State => {
 			running: true,
 			finished: false,
 			inputRequested: false,
-			exitCode: -1
+			exitCode: -1,
+			output: []
 		};
 	}
 

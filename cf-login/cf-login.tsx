@@ -142,7 +142,7 @@ export const CfLogin = (): React.ReactElement => {
 			<InputPrompt/>
 			<ExitStatus/>
 			{/* <Command command="cf login --sso -a api.run.pivotal.io"/> */}
-			<Command command="date"/>
+			<Command command="echo hello there"/>
 		</Box>
 	);
 };
