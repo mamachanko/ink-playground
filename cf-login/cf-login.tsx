@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import {Text, StdinContext, Box} from 'ink';
+import {Text, StdinContext, Box, Color} from 'ink';
+import * as InkBox from 'ink-box';
 import Spinner from 'ink-spinner';
 import {useStore} from './store';
 
@@ -127,6 +128,12 @@ const Output = (): React.ReactElement => {
 export const CfLogin = (): React.ReactElement => {
 	return (
 		<Box flexDirection="column">
+			<InkBox
+				borderStyle="round"
+				borderColor="cyan"
+			>
+				Welcome to <Color green>cfpush</Color>
+			</InkBox>
 			<Output/>
 			<InputPrompt/>
 			<ExitStatus/>

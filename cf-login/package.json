@@ -2,6 +2,7 @@
   "dependencies": {
     "@types/react": "^16.8.8",
     "ink": "^2.0.6",
+    "ink-box": "^1.0.0",
     "ink-spinner": "^3.0.0",
     "prop-types": "^15.7.2",
     "react": "^16.8.4",
