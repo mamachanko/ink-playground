@@ -1,66 +1,34 @@
 import * as React from 'react';
-import { Box, StdinContext } from 'ink';
+import { Box } from 'ink';
+import { reducer, State, moveSelectionUp, moveSelectionDown } from './reducer';
+import { useStdin } from './use-stdin';
 
 const ARROW_UP = '\x1B[A';
 const ARROW_DOWN = '\x1B[B';
 
-const useStdin = handleInput => {
-    const { stdin, setRawMode } = React.useContext(StdinContext);
-
-    React.useEffect(() => {
-        setRawMode(true);
-        stdin.on('data', handleInput);
-
-        return () => {
-            stdin.removeListener('data', handleInput);
-            setRawMode(false);
-        }
-    });
-};
-
-const initialState = {
-    answers: [
-        'answer 1',
+const initialState: State = {
+    before: [],
+    selected: 'answer 1',
+    after: [
         'answer 2',
         'answer 3'
-    ],
-    selection: 0
+    ]
 }
 
-const reducer = (state, action) => {
-    switch (action) {
-        case ('MOVE_SELECTION_UP'):
-            return {
-                ...state,
-                selection: (3 + (state.selection - 1)) % 3
-            }
-        case ('MOVE_SELECTION_DOWN'):
-            return {
-                ...state,
-                selection: (state.selection + 1) % 3
-            }
-        default: throw Error(`unhandled action ${action}`);
-    }
-};
-
 export const MultipleChoice = () => {
-    const [{ answers, selection }, dispatch] = React.useReducer(reducer, initialState);
+    const [{ before, selected, after }, dispatch] = React.useReducer(reducer, initialState);
 
     const handleInput = (input: string) => {
-        if (input === ARROW_UP) {
-            dispatch('MOVE_SELECTION_UP')
-        }
-        if (input === ARROW_DOWN) {
-            dispatch('MOVE_SELECTION_DOWN')
-        }
+        if (input == ARROW_UP) dispatch(moveSelectionUp());
+        if (input == ARROW_DOWN) dispatch(moveSelectionDown());
     };
 
     useStdin(handleInput);
 
     return <Box flexDirection={'column'}>
         {'question'}
-        {answers.map(
-            (answer: string, index: number) => (index === selection) ? `-> ${answer}` : `   ${answer}`
-        )}
+        {before.map(answer => `   ${answer}`)}
+        {`-> ${selected}`}
+        {after.map(answer => `   ${answer}`)}
     </Box>;
 };
