@@ -1,4 +1,5 @@
-import {State, Action, Reducer} from './store'; // eslint-disable-line import/named
+import {State, Reducer} from './store'; // eslint-disable-line import/named
+import {Action} from './actions'; // eslint-disable-line import/named
 
 export const initialState = {
 	// Idea: state = UNSTARTED | STARTED | FINISHED
@@ -10,7 +11,7 @@ export const initialState = {
 };
 
 export const reducer: Reducer = (state: State = initialState, action: Action): State => {
-	if (action.type === 'START') {
+	if (action.type === 'RUN_COMMAND') {
 		return {
 			...state,
 			running: true,

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import {initialState} from './reducer';
+import {Action} from './actions'; // eslint-disable-line import/named
 
 export interface State {
 	running: boolean;
@@ -8,37 +9,6 @@ export interface State {
 	exitCode: number;
 	output: string[];
 }
-
-interface Start {
-	type: 'START';
-	command: string;
-}
-
-interface OutputReceived {
-	type: 'OUTPUT_RECEIVED';
-	output: string;
-}
-
-interface InputRequested {
-	type: 'INPUT_REQUESTED';
-}
-
-interface InputReceived {
-	type: 'INPUT_RECEIVED';
-	input: string;
-}
-
-interface Finished {
-	type: 'FINISHED';
-	exitCode: number;
-}
-
-export type Action =
-	| Start
-	| OutputReceived
-	| InputRequested
-	| InputReceived
-	| Finished;
 
 export type Reducer = (state: State, action: Action) => State;
 
@@ -70,7 +40,7 @@ export const StoreProvider: React.FunctionComponent<StoreProviderProps> = ({stor
 	</DispatchContext.Provider>
 );
 
-type StoreAPI = {
+export type StoreAPI = {
 	getState: () => State;
 	dispatch: (action: Action) => void;
 }

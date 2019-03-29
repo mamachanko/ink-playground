@@ -1,5 +1,6 @@
 import * as fs from 'fs';
-import {Middleware, Action} from './store'; // eslint-disable-line import/named
+import {Middleware} from './store'; // eslint-disable-line import/named
+import {Action} from './actions'; // eslint-disable-line import/named
 
 const logToFile = (action: Action): void =>
 	fs.appendFile(
@@ -8,7 +9,8 @@ const logToFile = (action: Action): void =>
 		() => { }
 	);
 
-export const loggingMiddleware: Middleware = _ => next => action => { // eslint-disable-line @typescript-eslint/explicit-function-return-type
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const loggingMiddleware: Middleware = _ => next => action => {
 	logToFile(action);
 	next(action);
 };

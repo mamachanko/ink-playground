@@ -6,7 +6,7 @@ export class CommandRuntimeMiddleware {
 
 	middleware(): Middleware {
 		return _ => next => action => {
-			if (action.type === 'START') {
+			if (action.type === 'RUN_COMMAND') {
 				const [fileName, ...args] = action.command.split(' ');
 				this._subshell = spawn(fileName, args);
 

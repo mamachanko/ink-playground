@@ -13,7 +13,9 @@ describe('<Command />', () => {
 	});
 
 	it('runs command when pressing space', async () => {
-		const {lastFrame, stdin} = render(<App command="echo hello there"/>);
+		const {lastFrame, stdin} = render(
+			<App command="echo hello there"/>
+		);
 
 		expect(stripAnsi(lastFrame())).toContain('press <space> to run "echo hello there"');
 

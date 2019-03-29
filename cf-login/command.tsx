@@ -3,6 +3,7 @@ import Spinner from 'ink-spinner';
 import * as PropTypes from 'prop-types';
 import * as React from 'react';
 import {useStore} from './store';
+import {runCommand} from './actions';
 
 const useStdin = (handleInput: (input: string) => void): void => {
 	const {stdin, setRawMode} = React.useContext(StdinContext);
@@ -22,7 +23,7 @@ const Trigger = ({command}): React.ReactElement => {
 	const SPACE = ' ';
 	const {dispatch} = useStore();
 	const start = React.useCallback(
-		() => dispatch({type: 'START', command}),
+		() => dispatch(runCommand(command)),
 		[command, dispatch]
 	);
 	const handleInput = (input: string): void => {
