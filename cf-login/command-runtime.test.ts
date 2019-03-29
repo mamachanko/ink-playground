@@ -1,4 +1,4 @@
-import {runCommand, outputReceived} from './actions';
+import {runCommand, outputReceived, inputRequired} from './actions';
 import {initialState} from './reducer';
 import {Middleware, StoreAPI} from './store'; // eslint-disable-line import/named
 
@@ -27,8 +27,11 @@ const createChildProcessMock = (): any => {
 const commandRuntime = (spawn, childProcess = null): Middleware => {
 	return store => {
 		const subscribe = (): void => {
-			childProcess.stdout.on('data', data => {
+			childProcess.stdout.on('data', (data: string) => {
 				store.dispatch(outputReceived(data));
+				if (data.endsWith('> ')) {
+					store.dispatch(inputRequired());
+				}
 			});
 		};
 
@@ -73,5 +76,18 @@ describe('CommandRuntimeMiddleware', () => {
 
 		expect(storeMock.dispatch).toHaveBeenCalledWith(outputReceived('test command output'));
 		expect(storeMock.dispatch).toHaveBeenCalledTimes(1);
+	});
+
+	it('emits command input required', () => {
+		const storeMock = createStoreMock();
+		const subshell = createChildProcessMock();
+
+		commandRuntime(null, subshell)(storeMock);
+
+		subshell.emit('data', 'input required > ');
+
+		expect(storeMock.dispatch).toHaveBeenCalledWith(outputReceived('input required > '));
+		expect(storeMock.dispatch).toHaveBeenCalledWith(inputRequired());
+		expect(storeMock.dispatch).toHaveBeenCalledTimes(2);
 	});
 });

@@ -5,7 +5,7 @@ export const initialState = {
 	// Idea: state = UNSTARTED | STARTED | FINISHED
 	running: false,
 	finished: false,
-	inputRequested: false,
+	inputRequired: false,
 	exitCode: -1,
 	output: []
 };
@@ -16,7 +16,7 @@ export const reducer: Reducer = (state: State = initialState, action: Action): S
 			...state,
 			running: true,
 			finished: false,
-			inputRequested: false,
+			inputRequired: false,
 			exitCode: -1,
 			output: []
 		};
@@ -29,17 +29,17 @@ export const reducer: Reducer = (state: State = initialState, action: Action): S
 		};
 	}
 
-	if (action.type === 'INPUT_REQUESTED') {
+	if (action.type === 'INPUT_REQUIRED') {
 		return {
 			...state,
-			inputRequested: true
+			inputRequired: true
 		};
 	}
 
 	if (action.type === 'INPUT_RECEIVED') {
 		return {
 			...state,
-			inputRequested: false
+			inputRequired: false
 		};
 	}
 
@@ -48,7 +48,7 @@ export const reducer: Reducer = (state: State = initialState, action: Action): S
 			...state,
 			running: false,
 			finished: true,
-			inputRequested: false,
+			inputRequired: false,
 			exitCode: action.exitCode
 		};
 	}

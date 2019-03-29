@@ -1,5 +1,6 @@
 import {ChildProcess, spawn} from 'child_process';
 import {Middleware} from './store'; // eslint-disable-line import/named
+import {inputRequired} from './actions';
 
 export class CommandRuntimeMiddleware {
 	private _subshell: ChildProcess = null;
@@ -12,7 +13,7 @@ export class CommandRuntimeMiddleware {
 
 				this._subshell.stdout.on('data', (output: any) => {
 					if (String(output).endsWith('> ')) {
-						next({type: 'INPUT_REQUESTED'});
+						next(inputRequired());
 					}
 
 					next({type: 'OUTPUT_RECEIVED', output: String(output)});

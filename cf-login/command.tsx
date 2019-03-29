@@ -63,7 +63,7 @@ CommandPrompt.propTypes = {
 };
 
 const InputPrompt = (): React.ReactElement => {
-	const {state: {inputRequested}, dispatch} = useStore();
+	const {state: {inputRequired: inputRequested}, dispatch} = useStore();
 	const [userInput, setUserInput] = React.useState('');
 	const submit = React.useCallback(
 		() => {

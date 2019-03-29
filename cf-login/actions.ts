@@ -8,8 +8,8 @@ interface OutputReceived {
 	output: string;
 }
 
-interface InputRequested {
-	type: 'INPUT_REQUESTED';
+interface InputRequired {
+	type: 'INPUT_REQUIRED';
 }
 
 interface InputReceived {
@@ -25,9 +25,10 @@ interface Finished {
 export type Action =
 	| RunCommand
 	| OutputReceived
-	| InputRequested
+	| InputRequired
 	| InputReceived
 	| Finished;
 
 export const runCommand = (command: string): RunCommand => ({type: 'RUN_COMMAND', command});
 export const outputReceived = (output: string): OutputReceived => ({type: 'OUTPUT_RECEIVED', output});
+export const inputRequired = (): InputRequired => ({type: 'INPUT_REQUIRED'});

@@ -5,7 +5,7 @@ import {Action} from './actions'; // eslint-disable-line import/named
 export interface State {
 	running: boolean;
 	finished: boolean;
-	inputRequested: boolean;
+	inputRequired: boolean;
 	exitCode: number;
 	output: string[];
 }
