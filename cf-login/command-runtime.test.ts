@@ -1,4 +1,4 @@
-import {runCommand, outputReceived, inputRequired} from './actions';
+import {runCommand, outputReceived, inputRequired, finished} from './actions';
 import {initialState} from './reducer';
 import {Middleware, StoreAPI} from './store'; // eslint-disable-line import/named
 
@@ -32,6 +32,10 @@ const commandRuntime = (spawn, childProcess = null): Middleware => {
 				if (data.endsWith('> ')) {
 					store.dispatch(inputRequired());
 				}
+			});
+
+			childProcess.stdout.on('exit', (code: number) => {
+				store.dispatch(finished(code));
 			});
 		};
 
@@ -89,5 +93,17 @@ describe('CommandRuntimeMiddleware', () => {
 		expect(storeMock.dispatch).toHaveBeenCalledWith(outputReceived('input required > '));
 		expect(storeMock.dispatch).toHaveBeenCalledWith(inputRequired());
 		expect(storeMock.dispatch).toHaveBeenCalledTimes(2);
+	});
+
+	it('emits command finished', () => {
+		const storeMock = createStoreMock();
+		const subshell = createChildProcessMock();
+
+		commandRuntime(null, subshell)(storeMock);
+
+		subshell.emit('exit', 123);
+
+		expect(storeMock.dispatch).toHaveBeenCalledWith(finished(123));
+		expect(storeMock.dispatch).toHaveBeenCalledTimes(1);
 	});
 });

@@ -1,6 +1,6 @@
 import {ChildProcess, spawn} from 'child_process';
 import {Middleware} from './store'; // eslint-disable-line import/named
-import {inputRequired} from './actions';
+import {inputRequired, finished} from './actions';
 
 export class CommandRuntimeMiddleware {
 	private _subshell: ChildProcess = null;
@@ -20,7 +20,7 @@ export class CommandRuntimeMiddleware {
 				});
 
 				this._subshell.on('exit', code => {
-					next({type: 'FINISHED', exitCode: code});
+					next(finished(code));
 					this._subshell = null;
 				});
 			}
