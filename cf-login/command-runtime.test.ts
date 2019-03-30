@@ -11,15 +11,40 @@ const createStoreMock = (): StoreAPI => ({
 
 // IDEA: introduce childprocess type
 const createChildProcessMock = (): any => {
-	const listeners = {};
+	const listeners = {
+		stdout: null,
+		exit: null
+	};
 	return {
 		stdout: {
 			on: (event: string, callback: (output: string) => void) => {
-				listeners[event] = callback;
+				if (event !== 'data') {
+					throw new Error(`unexpected event listener on '${event}'. expected 'data'.`);
+				}
+
+				if (listeners.stdout !== null) {
+					throw new Error('event listener on stdout \'data\' already exists');
+				}
+
+				listeners.stdout = callback;
+			},
+			emit: (output: string) => {
+				listeners.stdout(output);
 			}
 		},
-		emit: (event: string, output: string) => {
-			listeners[event](output);
+		on: (event: string, callback: (output: string) => void) => {
+			if (event !== 'exit') {
+				throw new Error(`unexpected event listener on '${event}'. expected 'exit'.`);
+			}
+
+			if (listeners.exit !== null) {
+				throw new Error('event listener on \'exit\' already exists');
+			}
+
+			listeners.exit = callback;
+		},
+		exit: (exitCode: number) => {
+			listeners.exit(exitCode);
 		}
 	};
 };
@@ -34,7 +59,7 @@ const commandRuntime = (spawn, childProcess = null): Middleware => {
 				}
 			});
 
-			childProcess.stdout.on('exit', (code: number) => {
+			childProcess.on('exit', (code: number) => {
 				store.dispatch(finished(code));
 			});
 		};
@@ -59,7 +84,8 @@ describe('CommandRuntimeMiddleware', () => {
 		const storeMock = createStoreMock();
 		const nextMiddlewareMock = jest.fn();
 		const runCommandAction = runCommand('test-command');
-		const spawnMock = jest.fn().mockReturnValueOnce(createChildProcessMock());
+		const childProcessMock = createChildProcessMock();
+		const spawnMock = jest.fn().mockReturnValueOnce(childProcessMock);
 
 		commandRuntime(spawnMock)(storeMock)(nextMiddlewareMock)(runCommandAction);
 
@@ -76,7 +102,7 @@ describe('CommandRuntimeMiddleware', () => {
 
 		commandRuntime(null, subshell)(storeMock);
 
-		subshell.emit('data', 'test command output');
+		subshell.stdout.emit('test command output');
 
 		expect(storeMock.dispatch).toHaveBeenCalledWith(outputReceived('test command output'));
 		expect(storeMock.dispatch).toHaveBeenCalledTimes(1);
@@ -84,11 +110,11 @@ describe('CommandRuntimeMiddleware', () => {
 
 	it('emits command input required', () => {
 		const storeMock = createStoreMock();
-		const subshell = createChildProcessMock();
+		const childProcessMock = createChildProcessMock();
 
-		commandRuntime(null, subshell)(storeMock);
+		commandRuntime(null, childProcessMock)(storeMock);
 
-		subshell.emit('data', 'input required > ');
+		childProcessMock.stdout.emit('input required > ');
 
 		expect(storeMock.dispatch).toHaveBeenCalledWith(outputReceived('input required > '));
 		expect(storeMock.dispatch).toHaveBeenCalledWith(inputRequired());
@@ -97,11 +123,11 @@ describe('CommandRuntimeMiddleware', () => {
 
 	it('emits command finished', () => {
 		const storeMock = createStoreMock();
-		const subshell = createChildProcessMock();
+		const childProcessMock = createChildProcessMock();
 
-		commandRuntime(null, subshell)(storeMock);
+		commandRuntime(null, childProcessMock)(storeMock);
 
-		subshell.emit('exit', 123);
+		childProcessMock.exit(123);
 
 		expect(storeMock.dispatch).toHaveBeenCalledWith(finished(123));
 		expect(storeMock.dispatch).toHaveBeenCalledTimes(1);
