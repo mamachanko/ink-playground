@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import {Middleware} from './store'; // eslint-disable-line import/named
+import {Middleware} from 'redux';
 import {Action} from './actions'; // eslint-disable-line import/named
 
 const logToFile = (action: Action): void =>

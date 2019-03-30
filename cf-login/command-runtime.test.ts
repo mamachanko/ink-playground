@@ -1,8 +1,8 @@
+import {MiddlewareAPI, Middleware} from 'redux';
 import {runCommand, outputReceived, inputRequired, finished} from './actions';
 import {initialState} from './reducer';
-import {Middleware, StoreAPI} from './store'; // eslint-disable-line import/named
 
-const createStoreMock = (): StoreAPI => ({
+const createStoreMock = (): MiddlewareAPI => ({
 	dispatch: jest.fn(),
 	// IDEA: this shouldn't have a dependency on reducer
 	// maybe there's another way to create State

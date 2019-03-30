@@ -1,5 +1,13 @@
-import {State, Reducer} from './store'; // eslint-disable-line import/named
+import {Reducer} from 'redux';
 import {Action} from './actions'; // eslint-disable-line import/named
+
+interface State {
+	running: boolean;
+	finished: boolean;
+	inputRequired: boolean;
+	exitCode: number;
+	output: string[];
+}
 
 export const initialState = {
 	// Idea: state = UNSTARTED | STARTED | FINISHED

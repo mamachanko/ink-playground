@@ -1,29 +1,33 @@
 import * as React from 'react';
+import {Provider} from 'react-redux';
+import {configureStore} from 'redux-starter-kit';
 import {Command} from './command';
 import {CommandRuntimeMiddleware} from './command-runtime';
-import {initialState, reducer} from './reducer';
-import {createStore, StoreProvider} from './store';
-import {Title} from './title';
 import {loggingMiddleware} from './logging-middleware';
+import {reducer} from './reducer';
+import {Title} from './title';
 
-const commandRuntimeMiddleware = new CommandRuntimeMiddleware().middleware();
-
-const middlewares = [
-	commandRuntimeMiddleware,
-	loggingMiddleware
-];
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const CF_LOGIN = 'cf login -a api.run.pivotal.io --sso';
+const DATE = 'date';
 
 type AppProps = {
 	command?: string;
 }
 
-export const App: React.FunctionComponent<AppProps> = ({command = 'date'}): React.ReactElement => {
-	const store = createStore(reducer, initialState, middlewares);
+const store = configureStore({
+	reducer,
+	middleware: [
+		new CommandRuntimeMiddleware().middleware(),
+		loggingMiddleware
+	]
+});
 
+export const App: React.FunctionComponent<AppProps> = ({command = DATE}): React.ReactElement => {
 	return (
-		<StoreProvider store={store}>
+		<Provider store={store}>
 			<Title/>
 			<Command command={command}/>
-		</StoreProvider>
+		</Provider>
 	);
 };

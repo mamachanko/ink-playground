@@ -1,11 +1,15 @@
 {
   "dependencies": {
     "@types/react": "^16.8.8",
+    "@types/react-redux": "^7.0.6",
     "ink": "^2.0.6",
     "ink-box": "^1.0.0",
     "ink-spinner": "^3.0.0",
     "prop-types": "^15.7.2",
     "react": "^16.8.4",
+    "react-redux": "^6.0.1",
+    "redux": "^4.0.1",
+    "redux-starter-kit": "^0.4.3",
     "ts-node": "^8.0.3",
     "typescript": "^3.3.3333"
   },

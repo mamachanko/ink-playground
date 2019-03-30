@@ -1,5 +1,5 @@
 import {ChildProcess, spawn} from 'child_process';
-import {Middleware} from './store'; // eslint-disable-line import/named
+import {Middleware} from 'redux';
 import {inputRequired, finished} from './actions';
 
 export class CommandRuntimeMiddleware {
@@ -26,7 +26,7 @@ export class CommandRuntimeMiddleware {
 			}
 
 			if (action.type === 'INPUT_RECEIVED') {
-				this._subshell.stdin.write(action.input + '\n');
+				this._subshell.stdin.write(`${action.input}\n`);
 			}
 
 			next(action);

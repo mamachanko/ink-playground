@@ -2,8 +2,10 @@ import {Box, StdinContext, Text} from 'ink';
 import Spinner from 'ink-spinner';
 import * as PropTypes from 'prop-types';
 import * as React from 'react';
-import {useStore} from './store';
+import {ReactReduxContext} from 'react-redux';
 import {runCommand} from './actions';
+
+const SPACE = ' ';
 
 const useStdin = (handleInput: (input: string) => void): void => {
 	const {stdin, setRawMode} = React.useContext(StdinContext);
@@ -20,8 +22,8 @@ const useStdin = (handleInput: (input: string) => void): void => {
 };
 
 const Trigger = ({command}): React.ReactElement => {
-	const SPACE = ' ';
-	const {dispatch} = useStore();
+	const {store: {dispatch}} = React.useContext(ReactReduxContext);
+
 	const start = React.useCallback(
 		() => dispatch(runCommand(command)),
 		[command, dispatch]
@@ -42,7 +44,8 @@ Trigger.propTypes = {
 };
 
 const CommandPrompt = ({command}): React.ReactElement => {
-	const {state: {running}} = useStore();
+	const {store} = React.useContext(ReactReduxContext);
+	const {running} = store.getState();
 
 	if (running) {
 		return (
@@ -63,7 +66,9 @@ CommandPrompt.propTypes = {
 };
 
 const InputPrompt = (): React.ReactElement => {
-	const {state: {inputRequired: inputRequested}, dispatch} = useStore();
+	const {store: {getState, dispatch}} = React.useContext(ReactReduxContext);
+	const {inputRequired} = getState();
+
 	const [userInput, setUserInput] = React.useState('');
 	const submit = React.useCallback(
 		() => {
@@ -83,7 +88,7 @@ const InputPrompt = (): React.ReactElement => {
 
 	useStdin(handleInput);
 
-	if (inputRequested) {
+	if (inputRequired) {
 		return (
 			<Box>
 				<Text>{'>_ '}</Text>
@@ -96,7 +101,8 @@ const InputPrompt = (): React.ReactElement => {
 };
 
 const ExitStatus = (): React.ReactElement => {
-	const {state: {finished, exitCode}} = useStore();
+	const {store} = React.useContext(ReactReduxContext);
+	const {finished, exitCode} = store.getState();
 
 	if (finished) {
 		return <Text>{`finished w/ ${exitCode}`}</Text>;
@@ -106,7 +112,8 @@ const ExitStatus = (): React.ReactElement => {
 };
 
 const Output = (): React.ReactElement => {
-	const {state: {output}} = useStore();
+	const {store} = React.useContext(ReactReduxContext);
+	const {output} = store.getState();
 
 	const outputLine = (text: string): React.ReactElement =>
 		<Text key={text + String(Date.now())}>{text}</Text>;
