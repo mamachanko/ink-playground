@@ -1,35 +1,40 @@
-import {ChildProcess, spawn} from 'child_process';
+import {spawn} from 'child_process';
 import {Middleware} from 'redux';
-import {inputRequired, finished} from './actions';
+import {finished, inputRequired, outputReceived} from './actions';
 
-export class CommandRuntimeMiddleware {
-	private _subshell: ChildProcess = null;
+export const commandRuntime = (spawnChildProcess = spawn, childProcess = null): Middleware => {
+	return store => {
+		const subscribe = (): void => {
+			childProcess.stdout.on('data', (data: any) => {
+				const output = String(data);
+				store.dispatch(outputReceived(output));
+				if (output.endsWith('> ')) {
+					store.dispatch(inputRequired());
+				}
+			});
 
-	middleware(): Middleware {
-		return _ => next => action => {
+			childProcess.on('exit', (code: number) => {
+				store.dispatch(finished(code));
+				childProcess = null;
+			});
+		};
+
+		if (childProcess !== null) {
+			subscribe();
+		}
+
+		return next => action => {
 			if (action.type === 'RUN_COMMAND') {
-				const [fileName, ...args] = action.command.split(' ');
-				this._subshell = spawn(fileName, args);
-
-				this._subshell.stdout.on('data', (output: any) => {
-					if (String(output).endsWith('> ')) {
-						next(inputRequired());
-					}
-
-					next({type: 'OUTPUT_RECEIVED', output: String(output)});
-				});
-
-				this._subshell.on('exit', code => {
-					next(finished(code));
-					this._subshell = null;
-				});
+				const [filename, ...args] = action.command.split(' ');
+				childProcess = spawnChildProcess(filename, args);
+				subscribe();
 			}
 
 			if (action.type === 'INPUT_RECEIVED') {
-				this._subshell.stdin.write(`${action.input}\n`);
+				childProcess.stdout.write(action.input);
 			}
 
 			next(action);
 		};
-	}
-}
+	};
+};

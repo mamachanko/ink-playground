@@ -2,28 +2,24 @@ import * as React from 'react';
 import {Provider} from 'react-redux';
 import {configureStore} from 'redux-starter-kit';
 import {Command} from './command';
-import {CommandRuntimeMiddleware} from './command-runtime';
+import {commandRuntime} from './command-runtime';
 import {loggingMiddleware} from './logging-middleware';
 import {reducer} from './reducer';
 import {Title} from './title';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CF_LOGIN = 'cf login -a api.run.pivotal.io --sso';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const DATE = 'date';
-
-type AppProps = {
-	command?: string;
-}
 
 const store = configureStore({
 	reducer,
 	middleware: [
-		new CommandRuntimeMiddleware().middleware(),
+		commandRuntime(),
 		loggingMiddleware
 	]
 });
 
-export const App: React.FunctionComponent<AppProps> = ({command = DATE}): React.ReactElement => {
+export const App: React.FunctionComponent<AppProps> = ({command = CF_LOGIN}): React.ReactElement => {
 	return (
 		<Provider store={store}>
 			<Title/>
@@ -31,3 +27,7 @@ export const App: React.FunctionComponent<AppProps> = ({command = DATE}): React.
 		</Provider>
 	);
 };
+
+type AppProps = {
+	command?: string;
+}

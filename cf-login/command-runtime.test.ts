@@ -1,5 +1,6 @@
-import {MiddlewareAPI, Middleware} from 'redux';
-import {runCommand, outputReceived, inputRequired, finished} from './actions';
+import {MiddlewareAPI} from 'redux';
+import {finished, inputRequired, outputReceived, runCommand, inputReceived} from './actions';
+import {commandRuntime} from './command-runtime';
 import {initialState} from './reducer';
 
 const createStoreMock = (): MiddlewareAPI => ({
@@ -17,7 +18,7 @@ const createChildProcessMock = (): any => {
 	};
 	return {
 		stdout: {
-			on: (event: string, callback: (output: string) => void) => {
+			on: (event: string, callback: (output: any) => void) => {
 				if (event !== 'data') {
 					throw new Error(`unexpected event listener on '${event}'. expected 'data'.`);
 				}
@@ -28,7 +29,8 @@ const createChildProcessMock = (): any => {
 
 				listeners.stdout = callback;
 			},
-			emit: (output: string) => {
+			write: jest.fn(),
+			emit: (output: any) => {
 				listeners.stdout(output);
 			}
 		},
@@ -49,47 +51,17 @@ const createChildProcessMock = (): any => {
 	};
 };
 
-const commandRuntime = (spawn, childProcess = null): Middleware => {
-	return store => {
-		const subscribe = (): void => {
-			childProcess.stdout.on('data', (data: string) => {
-				store.dispatch(outputReceived(data));
-				if (data.endsWith('> ')) {
-					store.dispatch(inputRequired());
-				}
-			});
-
-			childProcess.on('exit', (code: number) => {
-				store.dispatch(finished(code));
-			});
-		};
-
-		if (childProcess !== null) {
-			subscribe();
-		}
-
-		return next => action => {
-			if (action.type === 'RUN_COMMAND') {
-				childProcess = spawn(action.command);
-				subscribe();
-			}
-
-			next(action);
-		};
-	};
-};
-
 describe('CommandRuntimeMiddleware', () => {
 	it('starts to run a command', () => {
 		const storeMock = createStoreMock();
 		const nextMiddlewareMock = jest.fn();
-		const runCommandAction = runCommand('test-command');
+		const runCommandAction = runCommand('test-command --flag --positional arg');
 		const childProcessMock = createChildProcessMock();
 		const spawnMock = jest.fn().mockReturnValueOnce(childProcessMock);
 
 		commandRuntime(spawnMock)(storeMock)(nextMiddlewareMock)(runCommandAction);
 
-		expect(spawnMock).toHaveBeenLastCalledWith('test-command');
+		expect(spawnMock).toHaveBeenLastCalledWith('test-command', ['--flag', '--positional', 'arg']);
 		expect(spawnMock).toHaveBeenCalledTimes(1);
 
 		expect(nextMiddlewareMock).toHaveBeenCalledWith(runCommandAction);
@@ -131,5 +103,18 @@ describe('CommandRuntimeMiddleware', () => {
 
 		expect(storeMock.dispatch).toHaveBeenCalledWith(finished(123));
 		expect(storeMock.dispatch).toHaveBeenCalledTimes(1);
+	});
+
+	it('provides user input to command', () => {
+		const storeMock = createStoreMock();
+		const childProcessMock = createChildProcessMock();
+		const nextMiddlewareMock = jest.fn();
+
+		commandRuntime(null, childProcessMock)(storeMock)(nextMiddlewareMock)(inputReceived('test user input'));
+
+		expect(childProcessMock.stdout.write).toHaveBeenCalledWith('test user input');
+		expect(childProcessMock.stdout.write).toHaveBeenCalledTimes(1);
+		expect(nextMiddlewareMock).toHaveBeenCalledWith(inputReceived('test user input'));
+		expect(nextMiddlewareMock).toHaveBeenCalledTimes(1);
 	});
 });
